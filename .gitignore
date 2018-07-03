@@ -1,3 +1,7 @@
 *.pdf
 *.zip
 data
+*.pyc
+__pycache__
+*.bak
+*.log
