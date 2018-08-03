@@ -30,7 +30,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # LOAD THE COLOURS CATEGORIES
-    colours = np.load(args.colours)[0]
+    colours = np.load(args.colours, encoding="latin1")[0]
     num_colours = np.shape(colours)[0]
 
     # Load the data first for consistency

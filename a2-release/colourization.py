@@ -186,7 +186,8 @@ class MyDilatedConv2d(MyConv2d):
 
     def forward(self, input):
         ############### YOUR CODE GOES HERE ############### 
-        pass
+        return F.conv2d(input, self.weight, self.bias, padding=self.padding, dilation=self.dilation)
+        #pass
         ###################################################
 
 class CNN(nn.Module):
