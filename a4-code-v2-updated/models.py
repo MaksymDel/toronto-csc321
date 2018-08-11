@@ -16,6 +16,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+#TODO: check how to use the pretrained model - currently have the missing key error (missing deconv2.1*)
 
 def deconv(in_channels, out_channels, kernel_size, stride=2, padding=1, batch_norm=True):
     """Creates a transposed-convolutional layer, with optional batch normalization.
