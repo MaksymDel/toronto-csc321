@@ -44,7 +44,7 @@ class MyGRUCell(nn.Module):
         # ------------
         z = self.update(torch.cat((x, h_prev), 1))
         r = self.reset(torch.cat((x, h_prev), 1))
-        g = F.tanh(self.weights_in(x) + r * self.weights_hn(h_prev))
+        g = torch.tanh(self.weights_in(x) + r * self.weights_hn(h_prev))
         h_new = (1 - z) * g + z * g
         return h_new
 
@@ -115,8 +115,6 @@ class Attention(nn.Module):
                 nn.ReLU(),
                 nn.Linear(hidden_size, 1))
 
-        # self.attention_network = ...
-
         self.softmax = nn.Softmax(dim=1)
 
     def forward(self, hidden, annotations):
@@ -133,7 +131,7 @@ class Attention(nn.Module):
         """
 
         batch_size, seq_len, hid_size = annotations.size()
-        expanded_hidden = hidden.unsqueeze(1).expand_as(annotations)
+        expanded_hidden = hidden.unsqueeze(1).expand_as(annotations) #batch_size x seq_len x hidden_size
 
         # ------------
         # FILL THIS IN
@@ -142,10 +140,10 @@ class Attention(nn.Module):
         # You are free to follow the code template below, or do it a different way,
         # as long as the output is correct.
 
-        concat = torch.cat((expanded_hidden, annotations), 2)
-        reshaped_for_attention_net = concat.view(batch_size * seq_len, hid_size * 2)
-        attention_net_output = self.attention_network(reshaped_for_attention_net)
-        unnormalized_attention = attention_net_output.unsqueeze(2)  # Reshape attention net output to have dimension batch_size x seq_len x 1
+        concat = torch.cat((expanded_hidden, annotations), 2)       #batch_size x seq_len x (hidden_size * 2)
+        reshaped_for_attention_net = concat.view(batch_size * seq_len, hid_size * 2)    #(batch_size * seq_len) x (hidden_size * 2)
+        attention_net_output = self.attention_network(reshaped_for_attention_net)   #(batch_size * seq_len) x 1?
+        unnormalized_attention = attention_net_output.view(batch_size, seq_len, 1)  # Reshape attention net output to have dimension batch_size x seq_len x 1
 
         return self.softmax(unnormalized_attention)
 
@@ -174,7 +172,7 @@ class AttentionDecoder(nn.Module):
         Returns:
             output: Un-normalized scores for each token in the vocabulary, across a batch. (batch_size x vocab_size)
             h_new: The new hidden states, across a batch. (batch_size x hidden_size)
-            attention_weights: The weights applied to the encoder annotations, across a batch. (batch_size x encoder_seq_len x 1)
+            attention_weights: The weights applied to the encoder annotations, across a batch. (batch_size x encoder_seq_len x 1) #is there a difference between encoder_seq_len and seq_len?
         """
         embed = self.embedding(x)    # batch_size x 1 x hidden_size
         embed = embed.squeeze(1)     # batch_size x hidden_size
@@ -183,11 +181,11 @@ class AttentionDecoder(nn.Module):
         # ------------
         # FILL THIS IN
         # ------------
-        attention_weights = self.attention.forward(h_prev, annotations)
-        context = torch.bmm(attention_weights.view(batch_size, 1, seq_len), annotations).squeeze(1)
-        embed_and_context = torch.cat((context, embed), 1)
-        h_new = self.rnn.forward(embed_and_context, h_prev)
-        output = self.out(h_new)
+        attention_weights = self.attention.forward(h_prev, annotations)     #batch_size x seq_len x 1
+        context = torch.bmm(attention_weights.view(batch_size, 1, seq_len), annotations).squeeze(1) #batch_size x hidden_size
+        embed_and_context = torch.cat((context, embed), 1)  #batch_size x (hidden_size * 2)
+        h_new = self.rnn.forward(embed_and_context, h_prev) #batch_size x hidden_size
+        output = self.out(h_new)                            #batch_size x vocab_size
         return output, h_new, attention_weights
 
 
