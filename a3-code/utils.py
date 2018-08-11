@@ -93,7 +93,7 @@ def visualize_attention(input_string, encoder, decoder, idx_dict, opts, save='sa
         decoder_output, decoder_hidden, attention_weights = decoder(decoder_input, decoder_hidden, encoder_annotations)
 
         ni = F.softmax(decoder_output, dim=1).data.max(1)[1]  # LongTensor of size 1
-        ni = ni[0]
+        ni = int(ni[0])
 
         all_attention_weights.append(attention_weights.squeeze().data.cpu().numpy())
 
